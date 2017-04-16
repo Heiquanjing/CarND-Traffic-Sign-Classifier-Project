@@ -18,9 +18,12 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./Number-of-each-Sign.jpg  "Visualization"
-[image2]: ./traffic-signs-examples/traffic-signs-examples.png "Traffic Signs Examples"
-
+[image1]: ./All-Traffic-Signs.png  "Visualization"
+[image2]: ./Number-of-each-Sign.png  "Histogram"
+[image3]: ./LeNet_Modified2_Architecture.png  "Architecture"
+[image4]: ./traffic-signs-examples/traffic-signs-examples.png "Traffic Signs Examples"
+[image5]: ./softmax_problities.png "Softmax Problities"
+[image6]: ./Bar_of_Problities.png "Bar Chart of Softmax Problities"
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/481/view) individually and describe how I addressed each point in my implementation.  
@@ -48,11 +51,13 @@ signs data set:
 
 ####2. Include an exploratory visualization of the dataset and identify where the code is in your code file.
 
-The code for this step is contained in the fourth code cell of the IPython notebook.  
+The code for this step is contained in the 3th-4th code cell of the IPython notebook.  Here are all classes of the German traffic signs.
+
+![alt text][image1]
 
 Here is an exploratory visualization of the data set. It is a bar chart showing how the data ...
 
-![alt text][image1]
+![alt text][image2]
 
 ###Design and Test a Model Architecture
 
@@ -60,7 +65,7 @@ Here is an exploratory visualization of the data set. It is a bar chart showing 
 
 The code for this step is contained in the fifth code cell of the IPython notebook.
 
-For preprocessing, I just only normalized the image data to the range (0, 1) using the code line X = X / 255 . I did NOT grayscale the image and kept the color channels.
+For preprocessing, I just only normalized the image data to the range (-1, 1) using the code line X = (X - 128) / 128 . I did NOT grayscale the image and kept the color channels.
 
 
 
@@ -73,21 +78,21 @@ My final model consisted of the following layers:
 | Layer         		|     Description	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | Input         		| 32x32x3 RGB image   							| 
-| Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x6 	|
+| Convolution 5x5     	| 1x1 stride, valid padding, outputs 28x28x16 	|
 | RELU					|												|
-| Max pooling 2x2	      	| 2x2 stride,  outputs 14x14x6 				|
-| Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x16 	|
+| Max pooling 2x2	      	| 2x2 stride,  outputs 14x14x16 				|
+| Convolution 5x5	    | 1x1 stride, valid padding, outputs 10x10x32 	|
 | RELU				|         									|
-| Max pooling 2x2		| 2x2 stride,  outputs 5x5x16		|
+| Max pooling 2x2		| 2x2 stride,  outputs 5x5x32		|
 |Convolution 5x5	    | 1x1 stride, valid padding, outputs 1x1x400	  	|
-|Flatten		    | flatten the layer1(14x14x6->1176) and layer3(1x1x400->400)		  	|
-|Concatenation	| concatenate the flattened layers to one(1176+400=1576) 		|
+|Flatten		    | flatten the layer2(5x5x32->800) and layer3(1x1x400->400)		  	|
+|Concatenation	| concatenate the flattened layers to one(800+400=1200) 		|
 |RELU				| 										|
-|DROPOUT			|keep_prob = 0.5 for training, 1.0 for valid and test	|
-|Fully connected		|Inputs 1576, Outputs 240						|
+|Fully connected		|Inputs 1200, Outputs 200						|
  |RELU				| 										|
 |DROPOUT			|keep_prob = 0.5 for training, 1.0 for valid and test	|
-|Fully connected		|Inputs 240, Outputs 43						|
+|Fully connected		|Inputs 200, Outputs 43						|
+
 
 
 ####3. Describe how, and identify where in your code, you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
@@ -101,8 +106,8 @@ To train the model, I used an AdamOptimizer method.
 The code for calculating the accuracy of the model is located in the 11-13th cell of the Ipython notebook.
 
 My final model results were:
-* validation set accuracy of 95.8% 
-* test set accuracy of 95.0%
+* validation set accuracy of 96.4% 
+* test set accuracy of 94.7%
 
 If an iterative approach was chosen:
 * What was the first architecture that was tried and why was it chosen?   
@@ -111,23 +116,26 @@ If an iterative approach was chosen:
 --- This model worked  well, but the validation set accuracy was lower than 93%，so I tried to implemente the Sermanet/LeCun model from their traffic sign classifier paper and there was an immediate improvement.  
 * How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to over fitting or under fitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.   
 --- The architecture of the  modified LeNet: 
-1. 5x5 convolution (Input 32x32x3, Output 28x28x6)
+1. 5x5 convolution (Input 32x32x3, Output 28x28x16)
 2. ReLU
-3. 2x2 max pool (Input 28x28x6, Output 14x14x6)
-4. 5x5 convolution (Input 14x14x6, Output 10x10x16)
+3. 2x2 max pool (Input 28x28x16, Output 14x14x16)
+4. 5x5 convolution (Input 14x14x16, Output 10x10x32)
 5. ReLU
-6. 2x2 max pool (Input 10x10x16, Output 5x5x16)
-7. 5x5 convolution (Input 5x5x6, Output 1x1x400)
-8. Flatten layers from numbers 7 (1x1x400 -> 400) and 3 (14x14x6 -> 1176)
-9. Concatenate the two flattened layers to a single size-1576 layer
+6. 2x2 max pool (Input 10x10x16, Output 5x5x32)
+7. 5x5 convolution (Input 5x5x32, Output 1x1x400)
+8. Flatten layers from numbers 7 (1x1x400 -> 400) and 6 (5x5x32 -> 800)
+9. Concatenate the two flattened layers to a single size-1200 layer
 10. ReLU
 11. Dropout layer (keep_prob = 0.5)
-12. Fully connected layer (Input 1576, Output 240)
+12. Fully connected layer (Input 1200, Output 200)
 10. ReLU
 11. Dropout layer (keep_prob = 0.5)
-12. Fully connected layer (Input 240, Output 43) 
+12. Fully connected layer (Input 200, Output 43) 
+
+![alt text][image3]
+
 * Which parameters were tuned? How were they adjusted and why?   
---- EPOCHES, BATCH_SIZE and the learing rate. The more epoches the high accuracy, but the accuracy will keep in a small range after certain epoches, so too many epoches have no mean. I set 30 to the parameter EPOCHES. The BATCH_SIZE is 100. Learning rate is 0.001. 
+--- EPOCHES, BATCH_SIZE and the learing rate. The more epoches the high accuracy, but the accuracy will keep in a small range after certain epoches, so too many epoches have no mean. I set 30 to the parameter EPOCHES, but we don't need to wait the model after 30 epoches. Here  I expect the good accuracy will be higher than 0.96, so when I get the valid accuracy larger than 0.96 for 2 consecutive times, the accuracy looks like stable, then I stop training the model.  The BATCH_SIZE is 100. Learning rate is 0.001. 
 * What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?   
 --- The parameter keep_prob for the Dropout is 0.5,  while the count of the combination of net is the most one, and the dropout will improve the overfitting problem significantly.
  
@@ -138,7 +146,7 @@ If an iterative approach was chosen:
 
 Here are five German traffic signs that I found on the web:
 
-![alt text][image2] 
+![alt text][image4] 
 
 
 ####2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. Identify where in your code predictions were made. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
@@ -149,42 +157,33 @@ Here are the results of the prediction:
 
 | Image			        |     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
-| Bumpy Road      		| Bumpy Road  									| 
-| No Entry     			| No Entry  										|
-| Road Work			| Road Work									|
-| Priority Road			| Stop											|
-| Slippery Road			| Slippery Road      								|
+| Ahead Only     			| Ahead Only   									| 
+| Children Crossing		| Children Crossing								|
+| No Entry				| No Entry										|
+| Priority Road			| Priority Road									|
+| No Passing			| No Passing	      								|
 | Turn Right			| Turn Right									|
-| 20 km/h	      			| 20 km/h						 				|
+| 30 km/h	      			| 30 km/h						 				|
+| Yield					| Yield											|
+| Go Straight or Left	| Go Straight or Left							|
 | Stop					| Stop											|
-| Go Straight or Right	| Go Straight or Right							|
-| Wild Animal Crossing	| Wild Animal Crossing							|
 
 
 
-The model was able to correctly guess 9 of the 10 traffic signs, which gives an accuracy of 90%. This compares favorably to the accuracy on the test set of 95.0%.
+The model was able to correctly guess 10 of the 10 traffic signs, which gives an accuracy of 100%. This compares favorably to the accuracy on the test set of 94.9%.
 
 ####3. Describe how certain the model is when predicting on each of the five new images by looking at the softmax probabilities for each prediction and identify where in your code softmax probabilities were outputted. Provide the top 5 softmax probabilities for each image along with the sign type of each probability. (OPTIONAL: as described in the "Stand Out Suggestions" part of the rubric, visualizations can also be provided such as bar charts)
 
 The code for making predictions on my final model is located in the 19th cell of the Ipython notebook.
 
-For the first image, the model is relatively sure that this is a bumpy road sign (probability of 0.52), and the image does contain a bumpy road sign. The top five soft max probabilities were
+Here is the top 5 problities of all ten images:
 
-| Probability         	|     Prediction	        					| 
-|:---------------------:|:---------------------------------------------:| 
-| .97         			| Bumpy Road   								| 
-| .51     				| Bicycles crossing								|
-| .50				| Traffic signals									|
-| .39	      			| No vehicles						 			|
-| .33				| Road work				    					|
+![alt text][image5]
 
+For the 3rd image, the no entry sign. There is something dirty on this sign, so that maybe affect the prediction. But the model is relatively sure that this is a no entry sign (probability of 1.0). 
 
-For the 4th image the model predicted incorrectly. The model is not very sure which one is correct, the stop with probability 19.03 and the priority road with 18.83. They are very close.  Actually the image contain a priority road sign. The top five soft max probabilities were
+For the 9th image the sign is  Go Straight or Left. From the image we can see the sign has a little warp. The model predicted correctly, but with a little lower problities by contrast to other images. 
 
-| Probability         	|     Prediction	        					| 
-|:---------------------:|:---------------------------------------------:| 
-| .190         			| Stop   										| 
-| .188     			| Priority road								|
-| .06				| No entry									|
-| .06	      			| Bicycles crossing					 		|
-| .05				| End of all speed and passing limits		| 
+Here is the softmax problities of the ten images:
+
+![alt text][image6]
